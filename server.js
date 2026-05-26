@@ -22,10 +22,17 @@ const PORT = process.env.PORT || 3000;
 const HOST = '0.0.0.0'; // requis pour Railway
 
 // Servir le jeu depuis /public
-app.use(express.static(path.join(__dirname, 'public')));
-app.get('/', (_req, res) =>
-  res.sendFile(path.join(__dirname, 'public', 'index.html'))
-);
+// Sert depuis /public si existe, sinon depuis la racine
+const fs = require('fs');
+const publicDir = path.join(__dirname, 'public');
+const rootHtml = path.join(__dirname, 'index.html');
+if(fs.existsSync(publicDir)){
+  app.use(express.static(publicDir));
+  app.get('/', (_req, res) => res.sendFile(path.join(publicDir, 'index.html')));
+} else {
+  app.use(express.static(__dirname));
+  app.get('/', (_req, res) => res.sendFile(rootHtml));
+}
 app.get('/health', (_req, res) =>
   res.json({ ok: true, rooms: rooms.size, players: io.engine.clientsCount })
 );
